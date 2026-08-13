@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+playwright-report/
+test-results/
+
+# Environment / Local settings
+.env
+.env.local
+.claude/settings.local.json
+
+# OS files
+.DS_Store
+Thumbs.db

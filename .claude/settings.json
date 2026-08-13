@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "npm run check",
+      "node scripts/check-docs.mjs",
+      "git status",
+      "git diff",
+      "git log",
+      "git add",
+      "git commit",
+      "git branch",
+      "git switch"
+    ],
+    "ask": [
+      "git push",
+      "gh pr create",
+      "gh pr merge",
+      "npm install"
+    ],
+    "deny": [
+      "git push --force",
+      "git reset --hard",
+      "git clean -fd",
+      "rm -rf",
+      "git switch main"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "tools": ["Write", "Edit"],
+        "command": "scripts/hooks/block-docs-edit.sh \"$TARGET_FILE\""
+      }
+    ],
+    "Stop": [
+      {
+        "command": "scripts/hooks/stop-check-docs.sh"
+      }
+    ]
+  }
+}

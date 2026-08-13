@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BugReport",
+  "type": "object",
+  "properties": {
+    "schema_version": { "type": "integer", "enum": [1] },
+    "id": { "type": "string", "pattern": "^BUG-\\d{4}-\\d{4}$" },
+    "detected_phase": { "type": "string", "enum": ["DESIGN", "UT", "IT", "ST", "UAT", "PROD"] },
+    "detected_at": { "type": "string" },
+    "detected_by": { "type": "string", "enum": ["agent", "human", "ci"] },
+    "target_artifact": { "type": "string" },
+    "artifact_type": { "type": "string", "enum": ["design", "source", "test", "doc", "prompt"] },
+    "severity": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+    "cause_phase": { "type": "string", "enum": ["DESIGN", "UT", "IT", "ST", "UAT", "PROD"] },
+    "cause_category": {
+      "type": "string",
+      "enum": [
+        "requirement-miss",
+        "design-miss",
+        "coding-miss",
+        "test-viewpoint-missing",
+        "test-case-missing",
+        "prompt-defect",
+        "environment",
+        "external"
+      ]
+    },
+    "root_cause_viewpoint": { "type": ["string", "null"] },
+    "prompt_file": { "type": ["string", "null"] },
+    "fix_method": {
+      "type": "string",
+      "enum": ["prompt-update", "manual-fix", "regenerate", "doc-update", "wontfix"]
+    },
+    "status": { "type": "string", "enum": ["open", "in-progress", "closed", "rejected"] },
+    "detected_sprint": { "type": ["string", "null"] },
+    "closed_at": { "type": ["string", "null"] },
+    "effort_hours": { "type": ["number", "null"] }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "detected_phase",
+    "detected_at",
+    "detected_by",
+    "target_artifact",
+    "artifact_type",
+    "severity",
+    "cause_phase",
+    "cause_category",
+    "fix_method",
+    "status"
+  ],
+  "additionalProperties": false
+}
