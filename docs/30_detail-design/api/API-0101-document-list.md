@@ -4,7 +4,7 @@ name: ドキュメント一覧取得API
 method: GET
 path: /api/v1/documents
 layer: application
-consumes: [UC-0101, TBL-0001]
+consumes: [UC-0101, TBL-0001, MSG-0001, REQ-0003]
 related_screens: [SCR-0101]
 test_viewpoints: [VP-API-COMMON]
 status: approved

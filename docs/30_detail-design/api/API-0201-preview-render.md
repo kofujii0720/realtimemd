@@ -4,7 +4,7 @@ name: プレビューレンダリング補助API
 method: POST
 path: /api/v1/preview/render
 layer: application
-consumes: [UC-0201]
+consumes: [UC-0201, MSG-0001, REQ-0003]
 related_screens: [SCR-0101]
 test_viewpoints: [VP-API-COMMON]
 status: approved

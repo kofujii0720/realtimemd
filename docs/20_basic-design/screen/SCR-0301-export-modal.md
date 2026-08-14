@@ -2,7 +2,7 @@
 id: SCR-0301
 name: エクスポート設定モーダル
 route: / (モーダル表示)
-consumes: [UC-0301]
+consumes: [UC-0301, MSG-0001, REQ-0003]
 calls_apis: [API-0301]
 test_viewpoints: [VP-SCR-COMMON]
 status: approved

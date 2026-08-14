@@ -4,7 +4,7 @@ name: ドキュメントエクスポートAPI
 method: POST
 path: /api/v1/export
 layer: application
-consumes: [UC-0301]
+consumes: [UC-0301, MSG-0001, REQ-0003]
 related_screens: [SCR-0301]
 test_viewpoints: [VP-API-COMMON]
 status: approved

@@ -4,7 +4,7 @@ name: ドキュメント削除API
 method: DELETE
 path: /api/v1/documents/{document_id}
 layer: application
-consumes: [UC-0101, TBL-0001, TBL-0002]
+consumes: [UC-0101, TBL-0001, TBL-0002, MSG-0001, REQ-0003]
 related_screens: [SCR-0101]
 test_viewpoints: [VP-API-COMMON]
 status: approved

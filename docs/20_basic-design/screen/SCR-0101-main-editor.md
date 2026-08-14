@@ -2,7 +2,7 @@
 id: SCR-0101
 name: メインエディタ＆プレビュー画面
 route: /
-consumes: [UC-0101, UC-0201]
+consumes: [UC-0101, UC-0201, MSG-0001, REQ-0003]
 calls_apis: [API-0101, API-0102, API-0103, API-0104, API-0201]
 test_viewpoints: [VP-SCR-COMMON]
 status: approved
@@ -39,7 +39,7 @@ Markdownドキュメントの作成・選択・編集、およびリアルタイ
 | 操作 | data-testid | 前提条件 | 呼び出すAPI | 成功時 | 失敗時 |
 |---|---|---|---|---|---|
 | 新規作成ボタン | btn-create-doc | なし | `API-0102` | 新規ドキュメントを選択 | `MSG-0001.key.error.common.systemError` |
-| 保存ボタン | btn-save-doc | ドキュメント選択時 | `API-0103` | 保存完了通知メッセージ | `MSG-0001.key.error.document.sizeExceeded` 等 |
+| 保存ボタン | btn-save-doc | ドキュメント選択時 | `API-0103` | `MSG-0001.key.info.document.saved` / `MSG-0001.key.info.document.autoSaved` 表示 | `MSG-0001.key.error.document.sizeExceeded` 等 |
 | エクスポートボタン | btn-open-export | ドキュメント選択時 | なし | SCR-0301 モーダルを開く | なし |
 | 削除ボタン | btn-delete-doc | ドキュメント選択時 | `API-0104` | 一覧更新、先頭を選択 | `MSG-0001.key.error.document.notFound` |
 
