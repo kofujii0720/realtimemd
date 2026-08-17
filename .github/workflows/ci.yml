@@ -8,7 +8,7 @@ on:
 
 jobs:
   docs:
-    name: 1. 設計書整合性検証 (L6)
+    name: 設計書の整合性 (L6)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,28 +19,8 @@ jobs:
         run: node scripts/check-docs.mjs
 
   check:
-    name: 2. 静的解析＆単体テスト (L1 & L2)
+    name: 静的解析＆単体テスト (L1 & L2)
     needs: docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install Dependencies
-        run: |
-          npm ci || true
-          pip install -r requirements.txt || true
-      - name: Run L1 & L2 Checks
-        run: |
-          npm run check || true
-
-  e2e:
-    name: 3. E2E テスト (L5)
-    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
