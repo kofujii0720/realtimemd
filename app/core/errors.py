@@ -47,10 +47,47 @@ class DocumentTitleRequiredException(AppException):
         )
 
 
-class SystemErrorException(AppException):
-    """E-0102-999 / E-0401-999 システム内部エラー."""
+# API-0103 定義済み例外
+class DocumentNotFoundException(AppException):
+    """E-0103-001 対象ドキュメントが存在しない."""
 
-    def __init__(self, code: str = "E-0102-999", details: Optional[List[Any]] = None) -> None:
+    def __init__(self, code: str = "E-0103-001", details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=code,
+            message_key=MessageKeys.ERROR_DOC_NOT_FOUND,
+            details=details,
+        )
+
+
+class DocumentUpdateSizeExceededException(AppException):
+    """E-0103-002 本文サイズ制限(2MB)超過."""
+
+    def __init__(self, details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code="E-0103-002",
+            message_key=MessageKeys.ERROR_DOC_SIZE_EXCEEDED,
+            details=details,
+        )
+
+
+class DocumentUpdateTitleRequiredException(AppException):
+    """E-0103-003 タイトル未入力・空・文字数超過."""
+
+    def __init__(self, details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code="E-0103-003",
+            message_key=MessageKeys.ERROR_DOC_TITLE_REQUIRED,
+            details=details,
+        )
+
+
+class SystemErrorException(AppException):
+    """E-0102-999 / E-0103-999 / E-0401-999 システム内部エラー."""
+
+    def __init__(self, code: str = "E-0103-999", details: Optional[List[Any]] = None) -> None:
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             code=code,
@@ -76,32 +113,37 @@ async def validation_exception_handler(
 ) -> JSONResponse:
     """Pydantic バリデーションエラーハンドラー."""
     errors = exc.errors()
+    is_put = request.method == "PUT"
+
     # タイトルまたは本文のエラーを特定
     for err in errors:
         loc = err.get("loc", ())
         if "title" in loc:
+            code = "E-0103-003" if is_put else "E-0102-002"
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
-                    "code": "E-0102-002",
+                    "code": code,
                     "messageKey": MessageKeys.ERROR_DOC_TITLE_REQUIRED,
                     "details": errors,
                 },
             )
         if "content" in loc:
+            code = "E-0103-002" if is_put else "E-0102-001"
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={
-                    "code": "E-0102-001",
+                    "code": code,
                     "messageKey": MessageKeys.ERROR_DOC_SIZE_EXCEEDED,
                     "details": errors,
                 },
             )
 
+    default_code = "E-0103-003" if is_put else "E-0102-002"
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
-            "code": "E-0102-002",
+            "code": default_code,
             "messageKey": MessageKeys.ERROR_DOC_TITLE_REQUIRED,
             "details": errors,
         },
@@ -110,10 +152,12 @@ async def validation_exception_handler(
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """未処理例外用ハンドラー (500)."""
+    is_put = request.method == "PUT"
+    code = "E-0103-999" if is_put else "E-0102-999"
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "code": "E-0102-999",
+            "code": code,
             "messageKey": MessageKeys.ERROR_COMMON_SYSTEM_ERROR,
             "details": [],
         },

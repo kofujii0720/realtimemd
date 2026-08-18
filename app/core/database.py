@@ -27,6 +27,24 @@ def init_db(db_path: Optional[str] = None) -> None:
                 ON documents(updated_at DESC);
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS document_histories (
+                    id TEXT PRIMARY KEY,
+                    document_id TEXT NOT NULL,
+                    version_no INTEGER NOT NULL DEFAULT 1,
+                    content TEXT NOT NULL DEFAULT '',
+                    saved_at TEXT NOT NULL,
+                    FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+                );
+                """
+            )
+            conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_document_histories_doc_version 
+                ON document_histories(document_id, version_no DESC);
+                """
+            )
     finally:
         conn.close()
 
