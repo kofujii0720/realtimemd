@@ -57,7 +57,7 @@ async function setupDefaultApiRoutes(page: Page, initialDocs?: MockDoc[]) {
     } else if (method === 'PUT') {
       // API-0103: 更新
       const match = url.match(/\/api\/v1\/documents\/([^/?]+)/);
-      const id = match ? decodeURIComponent(match[1]) : '';
+      const id = match && match[1] ? decodeURIComponent(match[1]) : '';
       const postData = JSON.parse(request.postData() || '{}');
       const existing = docs.find((d) => d.id === id);
       const updated: MockDoc = existing
@@ -78,7 +78,7 @@ async function setupDefaultApiRoutes(page: Page, initialDocs?: MockDoc[]) {
     } else if (method === 'DELETE') {
       // API-0104: 削除
       const match = url.match(/\/api\/v1\/documents\/([^/?]+)/);
-      const id = match ? decodeURIComponent(match[1]) : '';
+      const id = match && match[1] ? decodeURIComponent(match[1]) : '';
       docs = docs.filter((d) => d.id !== id);
       await route.fulfill({
         status: 204,
