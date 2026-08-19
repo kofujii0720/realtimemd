@@ -84,6 +84,19 @@ class DocumentUpdateTitleRequiredException(AppException):
         )
 
 
+# API-0105 定義済み例外
+class DocumentDetailNotFoundException(AppException):
+    """E-0105-001 対象ドキュメントが存在しない."""
+
+    def __init__(self, details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code="E-0105-001",
+            message_key=MessageKeys.ERROR_DOC_NOT_FOUND,
+            details=details,
+        )
+
+
 # API-0201 定義済み例外
 class PreviewRenderSizeExceededException(AppException):
     """E-0201-001 入力サイズ制限(2MB)超過."""
@@ -98,7 +111,7 @@ class PreviewRenderSizeExceededException(AppException):
 
 
 class SystemErrorException(AppException):
-    """E-0102-999 / E-0103-999 / E-0201-999 / E-0401-999 システム内部エラー."""
+    """E-0102-999 / E-0103-999 / E-0105-999 / E-0201-999 / E-0401-999 システム内部エラー."""
 
     def __init__(self, code: str = "E-0103-999", details: Optional[List[Any]] = None) -> None:
         super().__init__(
@@ -183,8 +196,12 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
         code = "E-0201-999"
     elif request.method == "PUT":
         code = "E-0103-999"
-    else:
+    elif request.method == "GET" and "/documents/" in path:
+        code = "E-0105-999"
+    elif request.method == "POST" and "/documents" in path:
         code = "E-0102-999"
+    else:
+        code = "E-0105-999" if request.method == "GET" else "E-0102-999"
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
