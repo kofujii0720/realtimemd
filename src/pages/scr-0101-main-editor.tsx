@@ -120,7 +120,6 @@ export const MainEditorPage: React.FC = () => {
                 <button
                   type="button"
                   className={styles.promptCreateBtn}
-                  data-testid="btn-create-doc"
                   onClick={() => void handleCreateDocument()}
                 >
                   ＋ 新規ドキュメントを作成
