@@ -72,6 +72,28 @@ class MarkdownRenderer:
         return escaped
 
     @classmethod
+    def _is_block_start(cls, line: str) -> bool:
+        """指定された行が段落以外のブロック要素の開始行であるかを判定する."""
+        s = line.strip()
+        if not s:
+            return True
+        if re.match(r"^```(\w*)\s*$", line):
+            return True
+        if re.match(r"^(#{1,6})\s+(.+)$", line):
+            return True
+        if re.match(r"^(?:-{3,}|\*{3,}|_{3,})\s*$", line):
+            return True
+        if line.startswith(">"):
+            return True
+        if re.match(r"^[\*\-\+]\s+(.+)$", line):
+            return True
+        if re.match(r"^\d+\.\s+(.+)$", line):
+            return True
+        if s.startswith("|") and s.endswith("|"):
+            return True
+        return False
+
+    @classmethod
     def render(cls, markdown_text: str) -> str:
         """Markdown文字列をパースし、安全なHTML文字列を生成する."""
         if not markdown_text:
@@ -205,11 +227,15 @@ class MarkdownRenderer:
 
             # 8. 通常の段落
             paragraph_lines: List[str] = []
-            while i < n and lines[i].strip() and not lines[i].startswith(("#", "```", ">", "-", "*", "+")) and not re.match(r"^\d+\.\s+", lines[i]):
+            while i < n and lines[i].strip() and not cls._is_block_start(lines[i]):
                 paragraph_lines.append(lines[i].strip())
                 i += 1
             if paragraph_lines:
                 para_text = " ".join(paragraph_lines)
                 html_blocks.append(f"<p>{cls.render_inline(para_text)}</p>")
+            elif i < n:
+                # どのブロックにも該当せず段落にも入らなかった場合の進捗保証
+                html_blocks.append(f"<p>{cls.render_inline(lines[i].strip())}</p>")
+                i += 1
 
         return "\n".join(html_blocks)
