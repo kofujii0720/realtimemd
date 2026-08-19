@@ -1,0 +1,42 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fef2f2;
+  border-bottom: 1px solid #f87171;
+  color: #b91c1c;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 100;
+  width: 100%;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+.messageText {
+  color: #b91c1c;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: #b91c1c;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.closeBtn:hover {
+  background-color: #fee2e2;
+}
