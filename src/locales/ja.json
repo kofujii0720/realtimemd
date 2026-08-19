@@ -1,0 +1,10 @@
+{
+  "error.document.notFound": "指定されたドキュメントが見つかりません。",
+  "error.document.sizeExceeded": "ドキュメントのサイズ制限(2MB)を超過しています。",
+  "error.document.titleRequired": "ドキュメントタイトルは必須です。",
+  "error.export.pdfFailed": "PDFの生成処理に失敗しました。",
+  "error.common.systemError": "システムエラーが発生しました。時間をおいて再試行してください。",
+  "info.document.saved": "ドキュメントを保存しました。",
+  "info.document.autoSaved": "下書きを自動保存しました。",
+  "label.status.empty": "ドキュメントがありません"
+}

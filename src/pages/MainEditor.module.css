@@ -1,0 +1,114 @@
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.mainLayout {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.contentArea {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.paneContainer {
+  display: flex;
+  flex: 1;
+  height: calc(100% - 56px);
+  overflow: hidden;
+}
+
+.splitView {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.editorPane {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+}
+
+.previewPane {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+}
+
+.hiddenPane {
+  display: none !important;
+}
+
+.mobileTabs {
+  display: flex;
+  height: 40px;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tabBtn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.activeTab {
+  color: #2563eb;
+  background-color: #ffffff;
+  font-weight: 600;
+  border-bottom: 2px solid #2563eb;
+}
+
+.emptyPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #64748b;
+  gap: 1rem;
+}
+
+.promptCreateBtn {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.promptCreateBtn:hover {
+  background-color: #1d4ed8;
+}
+
+@media (max-width: 800px) {
+  .splitView {
+    flex-direction: column;
+  }
+}
