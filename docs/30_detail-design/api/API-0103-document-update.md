@@ -45,6 +45,7 @@ HTTP ステータス: `200 OK`
 | E-0103-001 | 対象ドキュメントが存在しない | 404 | `MSG-0001.key.error.document.notFound` |
 | E-0103-002 | 本文サイズ制限(2MB)超過 | 400 | `MSG-0001.key.error.document.sizeExceeded` |
 | E-0103-003 | タイトル未入力・空 | 400 | `MSG-0001.key.error.document.titleRequired` |
+| E-0103-004 | タイトル文字数制限(255文字)超過 | 400 | `MSG-0001.key.error.document.titleTooLong` |
 | E-0103-999 | 内部エラー | 500 | `MSG-0001.key.error.common.systemError` |
 
 ## 3. 事前条件 / 事後条件 / 不変条件

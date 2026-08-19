@@ -13,11 +13,12 @@ version: 1
 
 | messageKey | 日本語メッセージ | 備考 |
 |---|---|---|
-| `error.document.notFound` | 指定されたドキュメントが見つかりません。 | E-0101-001, E-0103-001, E-0104-001 |
-| `error.document.sizeExceeded` | ドキュメントのサイズ制限(2MB)を超過しています。 | E-0102-001, E-0103-002 |
-| `error.document.titleRequired` | ドキュメントタイトルは必須です。 | E-0102-002, E-0103-003 |
+| `error.document.notFound` | 指定されたドキュメントが見つかりません。 | E-0103-001, E-0104-001, E-0105-001 |
+| `error.document.sizeExceeded` | ドキュメントのサイズ制限(2MB)を超過しています。 | E-0102-001, E-0103-002, E-0201-001 |
+| `error.document.titleRequired` | ドキュメントタイトルは必須です。 | E-0103-003 |
+| `error.document.titleTooLong` | ドキュメントタイトルは255文字以内で入力してください。 | E-0102-002, E-0103-004 |
 | `error.export.pdfFailed` | PDFの生成処理に失敗しました。 | E-0301-001 |
-| `error.common.systemError` | システムエラーが発生しました。時間をおいて再試行してください。 | E-0401-999 |
+| `error.common.systemError` | システムエラーが発生しました。時間をおいて再試行してください。 | E-0101-001, E-0101-999, E-0102-999, E-0103-999, E-0104-999, E-0105-999, E-0201-999, E-0301-002, E-0301-999, E-0401-999 |
 | `info.document.saved` | ドキュメントを保存しました。 | 成功通知 |
 | `info.document.autoSaved` | 下書きを自動保存しました。 | 自動保存通知 |
 | `label.status.empty` | ドキュメントがありません | 画面用表示ラベル |

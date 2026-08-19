@@ -3,7 +3,7 @@ id: SCR-0101
 name: メインエディタ＆プレビュー画面
 route: /
 consumes: [UC-0101, UC-0201, MSG-0001, REQ-0003]
-calls_apis: [API-0101, API-0102, API-0103, API-0104, API-0201]
+calls_apis: [API-0101, API-0102, API-0103, API-0104, API-0105, API-0201]
 test_viewpoints: [VP-SCR-COMMON]
 status: approved
 version: 1
@@ -24,9 +24,9 @@ Markdownドキュメントの作成・選択・編集、およびリアルタイ
 | 項目名 | data-testid | 型 | 取得元 | 表示条件 | 書式 |
 |---|---|---|---|---|---|
 | ドキュメント一覧 | doc-list | Array | `API-0101.out.items` | 常時 | タイトル一覧 |
-| タイトル入力 | doc-title-input | String | `API-0101.out.items[].title` | ドキュメント選択時 | テキスト |
-| エディタ本文 | doc-editor-textarea | String | `API-0101.out.items[].content` | ドキュメント選択時 | Markdownテキスト |
-| プレビューペイン | doc-preview-pane | HTML | `API-0201.out.html_content` | ドキュメント選択時 | HTML/SVGレンダリング |
+| タイトル入力 | doc-title-input | String | `API-0105.out.title` | ドキュメント選択時 | テキスト |
+| エディタ本文 | doc-editor-textarea | String | `API-0105.out.content` | ドキュメント選択時 | Markdownテキスト |
+| プレビューペイン | doc-preview-pane | HTML | フロントエンドパーサー変換結果（補完時: `API-0201.out.html_content`） | ドキュメント選択時 | HTML/SVGレンダリング |
 | エラー表示 | error-banner | String | `MSG-0001` | エラー発生時 | アラート表示 |
 
 ## 4. 入力項目
@@ -38,6 +38,7 @@ Markdownドキュメントの作成・選択・編集、およびリアルタイ
 ## 5. 操作と遷移
 | 操作 | data-testid | 前提条件 | 呼び出すAPI | 成功時 | 失敗時 |
 |---|---|---|---|---|---|
+| ドキュメント選択 | doc-item | 一覧にドキュメント存在時 | `API-0105` | 選択ドキュメントのタイトル・本文を表示 | `MSG-0001.key.error.document.notFound` |
 | 新規作成ボタン | btn-create-doc | なし | `API-0102` | 新規ドキュメントを選択 | `MSG-0001.key.error.common.systemError` |
 | 保存ボタン | btn-save-doc | ドキュメント選択時 | `API-0103` | `MSG-0001.key.info.document.saved` / `MSG-0001.key.info.document.autoSaved` 表示 | `MSG-0001.key.error.document.sizeExceeded` 等 |
 | エクスポートボタン | btn-open-export | ドキュメント選択時 | なし | SCR-0301 モーダルを開く | なし |
