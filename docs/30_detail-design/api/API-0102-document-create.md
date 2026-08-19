@@ -39,7 +39,7 @@ HTTP ステータス: `201 Created`
 | コード | 条件 | HTTP | messageKey |
 |---|---|---|---|
 | E-0102-001 | 本文サイズ制限(2MB)超過 | 400 | `MSG-0001.key.error.document.sizeExceeded` |
-| E-0102-002 | タイトル文字数制限(255文字)超過 | 400 | `MSG-0001.key.error.document.titleRequired` |
+| E-0102-002 | タイトル文字数制限(255文字)超過 | 400 | `MSG-0001.key.error.document.titleTooLong` |
 | E-0102-999 | 内部エラー | 500 | `MSG-0001.key.error.common.systemError` |
 
 ## 3. 事前条件 / 事後条件 / 不変条件

@@ -21,8 +21,8 @@ version: 1
 - [ ] `#9` メインエディタ＆プレビュー画面実装・E2E通過 (`/impl-screen SCR-0101`)
 
 ### マイルストーン 2: 一覧取得・削除・エクスポート機能（並列化）
-- [ ] `#10` ドキュメント一覧・削除API並列実装・集約 (`/impl-api API-0101`, `/impl-api API-0104`, `/merge-parallel`)
-- [ ] `#11` ドキュメント一覧・削除API単体テスト並列作成 (`/write-tests API-0101`, `/write-tests API-0104`)
+- [ ] `#10` ドキュメント一覧・詳細・削除API並列実装・集約 (`/impl-api API-0101`, `/impl-api API-0104`, `/impl-api API-0105`, `/merge-parallel`)
+- [ ] `#11` ドキュメント一覧・詳細・削除API単体テスト並列作成 (`/write-tests API-0101`, `/write-tests API-0104`, `/write-tests API-0105`)
 - [ ] `#12` PDFエクスポートAPI実装・単体テスト (`/impl-api API-0301`, `/write-tests API-0301`)
 - [ ] `#13` エクスポート設定モーダル実装 (`/impl-screen SCR-0301`)
 - [ ] `#14` メイン画面への一覧・削除・エクスポート導線追加 (`/extend-api SCR-0101`)
