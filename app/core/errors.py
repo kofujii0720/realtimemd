@@ -84,8 +84,21 @@ class DocumentUpdateTitleRequiredException(AppException):
         )
 
 
+# API-0201 定義済み例外
+class PreviewRenderSizeExceededException(AppException):
+    """E-0201-001 入力サイズ制限(2MB)超過."""
+
+    def __init__(self, details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code="E-0201-001",
+            message_key=MessageKeys.ERROR_DOC_SIZE_EXCEEDED,
+            details=details,
+        )
+
+
 class SystemErrorException(AppException):
-    """E-0102-999 / E-0103-999 / E-0401-999 システム内部エラー."""
+    """E-0102-999 / E-0103-999 / E-0201-999 / E-0401-999 システム内部エラー."""
 
     def __init__(self, code: str = "E-0103-999", details: Optional[List[Any]] = None) -> None:
         super().__init__(
@@ -113,7 +126,20 @@ async def validation_exception_handler(
 ) -> JSONResponse:
     """Pydantic バリデーションエラーハンドラー."""
     errors = exc.errors()
+    path = request.url.path
     is_put = request.method == "PUT"
+    is_preview = "/preview" in path
+
+    # API-0201 プレビューエンドポイントの場合
+    if is_preview:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "code": "E-0201-001",
+                "messageKey": MessageKeys.ERROR_DOC_SIZE_EXCEEDED,
+                "details": errors,
+            },
+        )
 
     # タイトルまたは本文のエラーを特定
     for err in errors:
@@ -152,8 +178,13 @@ async def validation_exception_handler(
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """未処理例外用ハンドラー (500)."""
-    is_put = request.method == "PUT"
-    code = "E-0103-999" if is_put else "E-0102-999"
+    path = request.url.path
+    if "/preview" in path:
+        code = "E-0201-999"
+    elif request.method == "PUT":
+        code = "E-0103-999"
+    else:
+        code = "E-0102-999"
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={

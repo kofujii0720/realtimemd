@@ -5,6 +5,10 @@ from app.schemas.document import (
     DocumentUpdateResponse,
     ErrorResponse,
 )
+from app.schemas.preview import (
+    PreviewRenderRequest,
+    PreviewRenderResponse,
+)
 
 __all__ = [
     "DocumentCreateRequest",
@@ -12,4 +16,7 @@ __all__ = [
     "DocumentUpdateRequest",
     "DocumentUpdateResponse",
     "ErrorResponse",
+    "PreviewRenderRequest",
+    "PreviewRenderResponse",
 ]
+
