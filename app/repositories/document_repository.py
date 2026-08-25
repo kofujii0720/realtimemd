@@ -1,9 +1,10 @@
 import uuid
-from typing import Optional, Protocol
+from typing import List, Optional, Protocol, Tuple
 
 from app.core.database import get_db_connection
 from app.models.tbl_0001 import DocumentModel
 from app.models.tbl_0002 import DocumentHistoryModel
+from app.schemas.document import DocumentHeader
 
 
 class DocumentRepositoryProtocol(Protocol):
@@ -21,6 +22,14 @@ class DocumentRepositoryProtocol(Protocol):
         is_explicit_save: bool,
         saved_at: str,
     ) -> Optional[DocumentModel]:
+        ...
+
+    def list_documents(
+        self, limit: int = 50, offset: int = 0
+    ) -> Tuple[int, List[DocumentHeader]]:
+        ...
+
+    def delete(self, document_id: str) -> bool:
         ...
 
 
@@ -77,6 +86,38 @@ class SqliteDocumentRepository:
                 updated_at=row["updated_at"],
             )
 
+    def list_documents(
+        self, limit: int = 50, offset: int = 0
+    ) -> Tuple[int, List[DocumentHeader]]:
+        """
+        全ドキュメントの総件数および更新日時降順の一覧メタデータを取得する (事後条件: DBの状態変更なし).
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) AS total FROM documents")
+            row = cursor.fetchone()
+            total = row["total"] if row else 0
+
+            cursor.execute(
+                """
+                SELECT id, title, updated_at
+                FROM documents
+                ORDER BY updated_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (limit, offset),
+            )
+            rows = cursor.fetchall()
+            items = [
+                DocumentHeader(
+                    id=r["id"],
+                    title=r["title"],
+                    updated_at=r["updated_at"],
+                )
+                for r in rows
+            ]
+            return total, items
+
     def update_with_history(
         self,
         document: DocumentModel,
@@ -127,3 +168,28 @@ class SqliteDocumentRepository:
                 )
 
         return document
+
+    def delete(self, document_id: str) -> bool:
+        """
+        TBL-0001 および TBL-0002 の該当レコードを物理削除する (事後条件・副作用).
+        対象ドキュメントが存在しない場合は False を返す (事前条件).
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            # 対象ドキュメントの存在確認 (事前条件)
+            cursor.execute("SELECT id FROM documents WHERE id = ?", (document_id,))
+            if cursor.fetchone() is None:
+                return False
+
+            # TBL-0002 関連履歴レコードの削除 (CASCADE 物理削除)
+            cursor.execute(
+                "DELETE FROM document_histories WHERE document_id = ?",
+                (document_id,),
+            )
+            # TBL-0001 ドキュメントレコードの削除
+            cursor.execute(
+                "DELETE FROM documents WHERE id = ?",
+                (document_id,),
+            )
+
+        return True

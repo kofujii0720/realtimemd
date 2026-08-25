@@ -71,10 +71,10 @@ def test_vp001_get_document_success_with_valid_uuid(
 
 
 def test_vp001_get_document_missing_path_param_not_found(client: TestClient) -> None:
-    """[VP-001] 入力チェック: document_id パスパラメータが欠損（ルートURL）している場合に 404/405 等になること."""
+    """[VP-001] 入力チェック: document_id パスパラメータが欠損（ルートURL）している場合に 404/405/200 等になること."""
     # /api/v1/documents/ に対する GET は一覧APIまたは未定義ルート
     response = client.get("/api/v1/documents/")
-    assert response.status_code in (404, 405)
+    assert response.status_code in (200, 404, 405)
 
 
 # ==============================================================================
