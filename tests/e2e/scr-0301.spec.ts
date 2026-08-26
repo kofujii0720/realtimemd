@@ -111,7 +111,7 @@ async function setupDefaultApiRoutes(
       await route.fulfill({
         status: 200,
         contentType: 'application/pdf',
-        body: Buffer.from('%PDF-1.4 mock pdf content'),
+        body: '%PDF-1.4 mock pdf content',
       });
     }
   });
