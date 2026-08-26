@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { DocumentHeader, DocumentDetail } from '../types/document';
 import {
   getDocumentList,
+  getDocumentDetail,
   createDocument,
   updateDocument,
   deleteDocument,
@@ -18,7 +19,7 @@ export interface UseDocumentsResult {
   errorMessage: string | null;
   infoMessage: string | null;
   isSaving: boolean;
-  selectDocument: (id: string) => void;
+  selectDocument: (id: string) => Promise<void> | void;
   handleCreateDocument: () => Promise<void>;
   handleSaveDocument: (isExplicit?: boolean) => Promise<boolean>;
   handleDeleteDocument: () => Promise<void>;
@@ -42,7 +43,7 @@ export function useDocuments(): UseDocumentsResult {
     setErrorMessage(null);
   }, []);
 
-  // 初期ドキュメント一覧ロード
+  // 初期ドキュメント一覧ロード (API-0101 + API-0105)
   const loadDocuments = useCallback(async () => {
     setState('loading');
     setErrorMessage(null);
@@ -56,22 +57,28 @@ export function useDocuments(): UseDocumentsResult {
       } else {
         const firstDoc = data.items[0];
         if (firstDoc) {
-          const cached = contentCacheRef.current.get(firstDoc.id);
-          if (cached) {
-            setSelectedDoc(cached);
-          } else {
-            const initialDetail: DocumentDetail = {
-              id: firstDoc.id,
-              title: firstDoc.title,
-              content: '',
-              created_at: firstDoc.updated_at,
-              updated_at: firstDoc.updated_at,
-            };
-            contentCacheRef.current.set(firstDoc.id, initialDetail);
-            setSelectedDoc(initialDetail);
+          try {
+            const detail = await getDocumentDetail(firstDoc.id);
+            contentCacheRef.current.set(firstDoc.id, detail);
+            setSelectedDoc(detail);
+            setState('normal');
+          } catch (detailErr) {
+            // キャッシュフォールバック
+            const cached = contentCacheRef.current.get(firstDoc.id);
+            if (cached) {
+              setSelectedDoc(cached);
+              setState('normal');
+            } else {
+              const msg = detailErr instanceof ApiError
+                ? detailErr.message
+                : getMessage('error.document.notFound');
+              setErrorMessage(msg);
+              setState('error');
+            }
           }
+        } else {
+          setState('normal');
         }
-        setState('normal');
       }
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : getMessage('error.common.systemError');
@@ -84,27 +91,29 @@ export function useDocuments(): UseDocumentsResult {
     void loadDocuments();
   }, [loadDocuments]);
 
-  // ドキュメント選択
+  // ドキュメント選択 (API-0105)
   const selectDocument = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const docHeader = documents.find((d) => d.id === id);
       if (!docHeader) return;
 
       const cached = contentCacheRef.current.get(id);
       if (cached) {
         setSelectedDoc(cached);
-      } else {
-        const newDetail: DocumentDetail = {
-          id: docHeader.id,
-          title: docHeader.title,
-          content: '',
-          created_at: docHeader.updated_at,
-          updated_at: docHeader.updated_at,
-        };
-        contentCacheRef.current.set(id, newDetail);
-        setSelectedDoc(newDetail);
       }
+
       setErrorMessage(null);
+
+      try {
+        const detail = await getDocumentDetail(id);
+        contentCacheRef.current.set(id, detail);
+        setSelectedDoc(detail);
+      } catch (err) {
+        if (!cached) {
+          const msg = err instanceof ApiError ? err.message : getMessage('error.document.notFound');
+          setErrorMessage(msg);
+        }
+      }
     },
     [documents]
   );
@@ -237,19 +246,25 @@ export function useDocuments(): UseDocumentsResult {
       } else {
         const nextSelected = nextDocs[0];
         if (nextSelected) {
-          const cached = contentCacheRef.current.get(nextSelected.id);
-          if (cached) {
-            setSelectedDoc(cached);
-          } else {
-            const detail: DocumentDetail = {
-              id: nextSelected.id,
-              title: nextSelected.title,
-              content: '',
-              created_at: nextSelected.updated_at,
-              updated_at: nextSelected.updated_at,
-            };
+          try {
+            const detail = await getDocumentDetail(nextSelected.id);
             contentCacheRef.current.set(nextSelected.id, detail);
             setSelectedDoc(detail);
+          } catch {
+            const cached = contentCacheRef.current.get(nextSelected.id);
+            if (cached) {
+              setSelectedDoc(cached);
+            } else {
+              const fallbackDetail: DocumentDetail = {
+                id: nextSelected.id,
+                title: nextSelected.title,
+                content: '',
+                created_at: nextSelected.updated_at,
+                updated_at: nextSelected.updated_at,
+              };
+              contentCacheRef.current.set(nextSelected.id, fallbackDetail);
+              setSelectedDoc(fallbackDetail);
+            }
           }
         }
         setState('normal');

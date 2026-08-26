@@ -1,4 +1,5 @@
 import type {
+  DocumentDetail,
   DocumentListResponse,
   CreateDocumentRequest,
   CreateDocumentResponse,
@@ -85,6 +86,32 @@ export async function getDocumentList(limit = 50, offset = 0): Promise<DocumentL
     return await handleResponse<DocumentListResponse>(res);
   } catch (err) {
     if (err instanceof ApiError) throw err;
+    throw new ApiError(getMessage('error.common.systemError'), 500, 'error.common.systemError');
+  }
+}
+
+/**
+ * ドキュメント詳細取得 (API-0105)
+ */
+export async function getDocumentDetail(id: string): Promise<DocumentDetail> {
+  try {
+    const res = await fetch(`/api/v1/documents/${encodeURIComponent(id)}`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    return await handleResponse<DocumentDetail>(res);
+  } catch (err) {
+    if (err instanceof ApiError) {
+      if (err.status === 404) {
+        throw new ApiError(
+          getMessage('error.document.notFound'),
+          404,
+          'error.document.notFound',
+          err.code ?? 'E-0105-001'
+        );
+      }
+      throw err;
+    }
     throw new ApiError(getMessage('error.common.systemError'), 500, 'error.common.systemError');
   }
 }

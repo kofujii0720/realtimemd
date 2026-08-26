@@ -5,6 +5,7 @@ from app.schemas.document import (
     DocumentUpdateResponse,
     ErrorResponse,
 )
+from app.schemas.export import ExportRequest
 from app.schemas.preview import (
     PreviewRenderRequest,
     PreviewRenderResponse,
@@ -16,6 +17,7 @@ __all__ = [
     "DocumentUpdateRequest",
     "DocumentUpdateResponse",
     "ErrorResponse",
+    "ExportRequest",
     "PreviewRenderRequest",
     "PreviewRenderResponse",
 ]

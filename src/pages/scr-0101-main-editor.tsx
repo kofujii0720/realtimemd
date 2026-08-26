@@ -76,7 +76,7 @@ export const MainEditorPage: React.FC = () => {
           documents={documents}
           selectedDocId={selectedDoc?.id}
           isLoading={state === 'loading'}
-          onSelectDocument={selectDocument}
+          onSelectDocument={(id) => void selectDocument(id)}
           onCreateDocument={() => void handleCreateDocument()}
         />
 
@@ -158,6 +158,8 @@ export const MainEditorPage: React.FC = () => {
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
         documentTitle={currentTitle}
+        documentContent={currentContent}
+        onSuccess={() => setIsExportOpen(false)}
       />
     </div>
   );

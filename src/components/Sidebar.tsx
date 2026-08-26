@@ -56,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <li
                   key={doc.id}
                   className={`${styles.docItem} ${isSelected ? styles.active : ''}`}
+                  data-testid="doc-item"
                   onClick={() => onSelectDocument(doc.id)}
                   role="button"
                   tabIndex={0}
