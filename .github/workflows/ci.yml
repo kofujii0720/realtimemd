@@ -8,7 +8,7 @@ on:
 
 jobs:
   docs:
-    name: 設計書の整合性 (L6)
+    name: 設計書整合性検証 (L6)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,8 +18,25 @@ jobs:
       - name: Run L6 check-docs
         run: node scripts/check-docs.mjs
 
-  check:
-    name: 静的解析＆単体テスト (L1 & L2)
+  backend:
+    name: バックエンド単体テスト (L2)
+    needs: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run Pytest
+        run: |
+          pytest tests/
+
+  frontend:
+    name: フロントエンドビルド (L1)
     needs: docs
     runs-on: ubuntu-latest
     steps:
@@ -27,6 +44,36 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run Playwright E2E Tests
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build and Type Check
+        run: npm run build
+
+  e2e:
+    name: E2Eテスト (L3)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python dependencies
         run: |
-          npx playwright test || true
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Start Backend Server
+        run: |
+          python -m uvicorn app.main:app --port 8000 &
+          sleep 2
+      - name: Run Playwright E2E Tests
+        run: npx playwright test
