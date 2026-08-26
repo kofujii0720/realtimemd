@@ -38,6 +38,28 @@ async function setupDefaultApiRoutes(page: Page, initialDocs?: MockDoc[]) {
         contentType: 'application/json',
         body: JSON.stringify({ items, total: items.length, limit: 50, offset: 0 }),
       });
+    } else if (method === 'GET') {
+      // API-0105: 詳細取得
+      const match = url.match(/\/api\/v1\/documents\/([^/?]+)/);
+      const id = match && match[1] ? decodeURIComponent(match[1]) : '';
+      const doc = docs.find((d) => d.id === id);
+      if (doc) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(doc),
+        });
+      } else {
+        await route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            code: 'E-0105-001',
+            message_key: 'error.document.notFound',
+            detail: '指定されたドキュメントが見つかりません。',
+          }),
+        });
+      }
     } else if (method === 'POST') {
       // API-0102: 新規作成
       const postData = JSON.parse(request.postData() || '{}');
@@ -174,7 +196,7 @@ test.describe('SCR-0101 メインエディタ＆プレビュー画面 E2Eテス�
     await expect(previewPane).toContainText('リストアイテム 1');
   });
 
-  test('[VP-105] 操作・API呼出・画面遷移 - 新規作成、保存、削除、エクスポートモーダル起動および連続操作', async ({ page }) => {
+  test('[VP-105] 操作・API呼出・画面遷移 - 新規作成、ドキュメント選択切り替え、保存、削除、エクスポートモーダル連携および連続操作', async ({ page }) => {
     const btnCreate = page.getByTestId('btn-create-doc');
     const btnSave = page.getByTestId('btn-save-doc');
     const btnDelete = page.getByTestId('btn-delete-doc');
@@ -188,24 +210,37 @@ test.describe('SCR-0101 メインエディタ＆プレビュー画面 E2Eテス�
     await expect(titleInput).toHaveValue('無題のドキュメント');
 
     // 2. 本文編集と保存操作（1回目）
-    await titleInput.fill('保存テストドキュメント');
-    await editorTextarea.fill('## 保存テスト本文 1回目');
+    await titleInput.fill('新規保存ドキュメント');
+    await editorTextarea.fill('## 新規保存ドキュメントの本文');
     await btnSave.click();
 
-    // 3. 連続操作検証（2回目即時保存）
-    await editorTextarea.fill('## 保存テスト本文 2回目 連続更新');
-    await btnSave.click();
+    // 3. 一覧からドキュメント選択切り替え (doc-item)
+    const docItems = page.getByTestId('doc-item');
+    await expect(docItems).toHaveCount(2);
+    // 2つ目のドキュメント（初期ドキュメント）をクリック
+    await docItems.nth(1).click();
+    await expect(titleInput).toHaveValue('初期テストドキュメント');
+    await expect(editorTextarea).toHaveValue('# 初期テスト本文\n\n- アイテム1\n- アイテム2');
 
-    // 4. エクスポートボタン操作（モーダル起動導線確認）
+    // 再び1つ目のドキュメントを選択
+    await docItems.nth(0).click();
+    await expect(titleInput).toHaveValue('新規保存ドキュメント');
+
+    // 4. エクスポートボタン操作（モーダル起動・連携確認）
     await btnExport.click();
     await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByTestId('export-format-pdf')).toBeVisible();
+    await expect(page.getByTestId('export-paper-select')).toBeVisible();
+
     // モーダルを閉じる
-    await page.getByRole('button', { name: 'キャンセル' }).click();
+    await page.getByTestId('btn-cancel-export').click();
     await expect(page.getByRole('dialog')).not.toBeVisible();
 
     // 5. 削除ボタン操作
     await btnDelete.click();
     await expect(page.getByTestId('doc-list')).toBeVisible();
+    // 削除後は残った初期ドキュメントが選択される
+    await expect(titleInput).toHaveValue('初期テストドキュメント');
   });
 
   test('[VP-106] 画面4状態 - 読込中、0件、正常、エラーの各状態の表示確認', async ({ page }) => {
