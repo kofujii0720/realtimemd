@@ -160,8 +160,45 @@ class PreviewRenderSizeExceededException(AppException):
         )
 
 
+# API-0301 定義済み例外
+class PdfExportFailedException(AppException):
+    """E-0301-001 PDF生成処理失敗."""
+
+    def __init__(self, details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            code="E-0301-001",
+            message_key=MessageKeys.ERROR_EXPORT_PDF_FAILED,
+            details=details,
+        )
+
+
+class InvalidExportFormatException(AppException):
+    """E-0301-002 不正な出力フォーマット指定."""
+
+    def __init__(self, details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code="E-0301-002",
+            message_key=MessageKeys.ERROR_COMMON_SYSTEM_ERROR,
+            details=details,
+        )
+
+
+class ExportSystemErrorException(AppException):
+    """E-0301-999 内部エラー."""
+
+    def __init__(self, details: Optional[List[Any]] = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            code="E-0301-999",
+            message_key=MessageKeys.ERROR_COMMON_SYSTEM_ERROR,
+            details=details,
+        )
+
+
 class SystemErrorException(AppException):
-    """E-0102-999 / E-0103-999 / E-0105-999 / E-0201-999 / E-0401-999 システム内部エラー."""
+    """E-0102-999 / E-0103-999 / E-0105-999 / E-0201-999 / E-0301-999 / E-0401-999 システム内部エラー."""
 
     def __init__(self, code: str = "E-0103-999", details: Optional[List[Any]] = None) -> None:
         super().__init__(
@@ -193,6 +230,18 @@ async def validation_exception_handler(
     clean_path = path.rstrip("/")
     is_put = request.method == "PUT"
     is_preview = "/preview" in path
+    is_export = "/export" in path
+
+    # API-0301 エクスポートエンドポイントの場合
+    if is_export:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "code": "E-0301-002",
+                "messageKey": MessageKeys.ERROR_COMMON_SYSTEM_ERROR,
+                "details": errors,
+            },
+        )
 
     # API-0201 プレビューエンドポイントの場合
     if is_preview:
@@ -255,7 +304,9 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     """未処理例外用ハンドラー (500)."""
     path = request.url.path
     clean_path = path.rstrip("/")
-    if "/preview" in path:
+    if "/export" in path:
+        code = "E-0301-999"
+    elif "/preview" in path:
         code = "E-0201-999"
     elif request.method == "PUT":
         code = "E-0103-999"
