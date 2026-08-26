@@ -1,23 +1,16 @@
 import sqlite3
 import uuid
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Generator
 import pytest
-from fastapi import FastAPI, status
-from fastapi.exceptions import RequestValidationError
+from fastapi import status
 from fastapi.testclient import TestClient
 
-from app.api.v1.api_0104 import get_document_repository, router as documents_delete_router
+from app.api.v1.api_0104 import get_document_repository
 from app.core.database import get_db_connection, init_db
-from app.core.errors import (
-    AppException,
-    app_exception_handler,
-    unhandled_exception_handler,
-    validation_exception_handler,
-)
 from app.core.messages import MessageKeys
+from app.main import app
 from app.models.tbl_0001 import DocumentModel
-from app.models.tbl_0002 import DocumentHistoryModel
 from app.repositories.document_repository import (
     DocumentRepositoryProtocol,
     SqliteDocumentRepository,
@@ -26,31 +19,6 @@ from app.usecases.delete_document import (
     DeleteDocumentUseCase,
     DocumentDeleteNotFoundException,
 )
-
-
-class CustomSqliteDocumentRepository(SqliteDocumentRepository):
-    """API-0104 delete メソッドを含むテスト用 SQLite リポジトリ拡張."""
-
-    def delete(self, document_id: str) -> bool:
-        """TBL-0001 および TBL-0002 の該当レコードを物理削除する (事後条件・副作用)."""
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            # 対象ドキュメントの存在確認 (事前条件)
-            cursor.execute("SELECT id FROM documents WHERE id = ?", (document_id,))
-            if cursor.fetchone() is None:
-                return False
-
-            # TBL-0002 関連履歴レコードの削除 (CASCADE 物理削除)
-            cursor.execute(
-                "DELETE FROM document_histories WHERE document_id = ?",
-                (document_id,),
-            )
-            # TBL-0001 ドキュメントレコードの削除
-            cursor.execute(
-                "DELETE FROM documents WHERE id = ?",
-                (document_id,),
-            )
-        return True
 
 
 @pytest.fixture
@@ -62,33 +30,23 @@ def test_db_path(tmp_path: Path) -> str:
 
 
 @pytest.fixture
-def test_repository(test_db_path: str) -> CustomSqliteDocumentRepository:
+def test_repository(test_db_path: str) -> SqliteDocumentRepository:
     """テスト用リポジトリ."""
-    return CustomSqliteDocumentRepository(db_path=test_db_path)
+    return SqliteDocumentRepository(db_path=test_db_path)
 
 
 @pytest.fixture
-def test_app(test_repository: CustomSqliteDocumentRepository) -> FastAPI:
-    """テスト用 FastAPI アプリケーション."""
-    app = FastAPI()
-    app.add_exception_handler(AppException, app_exception_handler)
-    app.add_exception_handler(RequestValidationError, validation_exception_handler)
-    app.add_exception_handler(Exception, unhandled_exception_handler)
-    app.include_router(documents_delete_router, prefix="/api/v1")
+def client(test_repository: SqliteDocumentRepository) -> Generator[TestClient, None, None]:
+    """FastAPI テストクライアント (リポジトリをテスト用にオーバーライド)."""
     app.dependency_overrides[get_document_repository] = lambda: test_repository
-    return app
-
-
-@pytest.fixture
-def client(test_app: FastAPI) -> Generator[TestClient, None, None]:
-    """FastAPI テストクライアント."""
-    with TestClient(test_app) as test_client:
+    with TestClient(app) as test_client:
         yield test_client
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def sample_document_with_history(
-    test_repository: CustomSqliteDocumentRepository, test_db_path: str
+    test_repository: SqliteDocumentRepository, test_db_path: str
 ) -> DocumentModel:
     """事前登録ドキュメントおよび関連変更履歴フィクスチャ."""
     doc_id = str(uuid.uuid4())
@@ -101,7 +59,7 @@ def sample_document_with_history(
     )
     created_doc = test_repository.create(doc)
 
-    # 履歴レコードを追加
+    # 履歴レコードを追加 (TBL-0002)
     with get_db_connection(test_db_path) as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -160,7 +118,7 @@ def test_vp001_delete_document_missing_path_param_not_found(client: TestClient) 
 
 def test_vp002_delete_document_uppercase_uuid(
     client: TestClient,
-    test_repository: CustomSqliteDocumentRepository,
+    test_repository: SqliteDocumentRepository,
 ) -> None:
     """[VP-002] 境界値・制約: 大文字UUID形式のIDでも正常に識別・削除できること."""
     doc_id = str(uuid.uuid4()).upper()
@@ -218,7 +176,7 @@ def test_vp004_error_e0104_001_document_not_found(client: TestClient) -> None:
     assert isinstance(data["details"], list)
 
 
-def test_vp004_error_e0104_999_internal_system_error(test_app: FastAPI) -> None:
+def test_vp004_error_e0104_999_internal_system_error() -> None:
     """[VP-004] E-0104-999: リポジトリ/内部エラー発生時に HTTP 500 とシステムエラーコードが返却されること."""
     class FailingRepository:
         def delete(self, document_id: str):
@@ -227,15 +185,16 @@ def test_vp004_error_e0104_999_internal_system_error(test_app: FastAPI) -> None:
         def get_by_id(self, document_id: str):
             raise RuntimeError("Database error")
 
-    test_app.dependency_overrides[get_document_repository] = lambda: FailingRepository()
+    app.dependency_overrides[get_document_repository] = lambda: FailingRepository()
     try:
-        with TestClient(test_app, raise_server_exceptions=False) as failing_client:
+        with TestClient(app, raise_server_exceptions=False) as failing_client:
             response = failing_client.delete(f"/api/v1/documents/{uuid.uuid4()}")
             assert response.status_code == 500
             data = response.json()
+            assert data["code"] == "E-0104-999"
             assert data["messageKey"] == MessageKeys.ERROR_COMMON_SYSTEM_ERROR
     finally:
-        test_app.dependency_overrides.clear()
+        app.dependency_overrides.clear()
 
 
 # ==============================================================================
@@ -245,7 +204,7 @@ def test_vp004_error_e0104_999_internal_system_error(test_app: FastAPI) -> None:
 def test_vp005_postcondition_and_invariant_deletion(
     client: TestClient,
     sample_document_with_history: DocumentModel,
-    test_repository: CustomSqliteDocumentRepository,
+    test_repository: SqliteDocumentRepository,
     test_db_path: str,
 ) -> None:
     """
