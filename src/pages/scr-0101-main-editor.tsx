@@ -158,6 +158,7 @@ export const MainEditorPage: React.FC = () => {
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
         documentTitle={currentTitle}
+        documentContent={currentContent}
       />
     </div>
   );
